@@ -17,29 +17,47 @@ type Projection<'State, 'Event> =
         Update : 'State -> 'Event -> 'State
     }
 
-let private flavourStock flavour state = 
+let private stockOf flavour state = 
     state
     |> Map.tryFind flavour
     |> Option.defaultValue 0
 
-let private updateFlavourStock state event =
-    match event with 
-    | FlavourSold flavour -> 
-        state
-        |> flavourStock flavour
-        |> fun stock -> Map.add flavour (stock - 1) state
-    | FlavourRestocked (flavour, quantity) ->
-        state
-        |> flavourStock flavour
-        |> fun stock -> Map.add flavour (stock + quantity) state
-    | _ -> state
+let private changeStock flavour quantity stock = 
+    stock
+    |> Map.tryFind flavour
+    |> Option.map (fun quantityInStock -> stock |> Map.add flavour (quantityInStock + quantity))
+    |> Option.defaultValue stock
 
-let flavorStocks : Projection<Map<Flavour, int>, Event> = 
+let private updateFlavourStock stock event =
+    match event with 
+    | FlavourSold flavour 
+        -> stock |> changeStock flavour -1
+    | FlavourRestocked (flavour, quantity) 
+        -> stock |> changeStock flavour quantity
+    | _ -> stock
+
+let flavorsStocks : Projection<Map<Flavour, int>, Event> = 
     {
         Init = Map.empty
         Update = updateFlavourStock
     }
 
-let project projection events =
-    events
-    |> List.fold projection.Update projection.Init
+let project projection =
+    List.fold projection.Update projection.Init
+
+module Behaviour =
+
+    let sellFlavor flavour events = 
+
+        let flavourStock = 
+            events 
+            |> project flavorsStocks 
+            |> stockOf flavour
+
+        match flavourStock with
+        | 0 -> [FlavourWasNotInStock flavour]
+        | 1 -> [FlavourSold flavour; FlavourWentOutOfStock flavour]
+        | _ -> [FlavourSold flavour]
+
+    let restockFlavor flavour quantity events =
+        [FlavourRestocked (flavour, quantity)]

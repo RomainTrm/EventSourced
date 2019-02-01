@@ -25,16 +25,23 @@ open Domain
 let main argv =
     let eventStore : EventStore<Event> = createInstance()
 
-    eventStore.Append [FlavourRestocked (Vanilla, 5); FlavourRestocked (Chocolate, 5); FlavourRestocked (Strawberry, 1)]
-    eventStore.Append [FlavourSold Chocolate; FlavourSold Vanilla]
-    eventStore.Append [FlavourSold Chocolate]
-    eventStore.Append [FlavourSold Strawberry; FlavourWentOutOfStock Strawberry]
-    eventStore.Append [FlavourSold Chocolate; FlavourWasNotInStock Strawberry]
+    // eventStore.Append [FlavourRestocked (Vanilla, 5); FlavourRestocked (Chocolate, 5); FlavourRestocked (Strawberry, 1)]
+    // eventStore.Append [FlavourSold Chocolate; FlavourSold Vanilla]
+    // eventStore.Append [FlavourSold Chocolate]
+    // eventStore.Append [FlavourSold Strawberry; FlavourWentOutOfStock Strawberry]
+    // eventStore.Append [FlavourSold Chocolate; FlavourWasNotInStock Strawberry]
+
+    eventStore.Evolve (Behaviour.sellFlavor Vanilla)
+    eventStore.Evolve (Behaviour.restockFlavor Vanilla 5)
+
+    eventStore.Evolve (Behaviour.sellFlavor Vanilla)
+    eventStore.Evolve (Behaviour.sellFlavor Strawberry)
+    eventStore.Evolve (Behaviour.sellFlavor Chocolate)
 
     let history = eventStore.GetHistory ()
     PrintHelper.printHistory history
 
-    let stocks = history |> project flavorStocks
+    let stocks = history |> project flavorsStocks
     PrintHelper.printStock stocks
 
     0 // return an integer exit code
