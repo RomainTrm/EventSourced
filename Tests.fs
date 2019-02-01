@@ -4,9 +4,26 @@ open Domain
 open Xunit
 open Swensen.Unquote
 
-[<Fact>]
-let ``SellFlavour: FalvourSold happy path`` () =
-    let events = [FlavourRestocked (Vanilla, 3)]
-    let newEvents = Behaviour.sellFlavor Vanilla events
-    let expected = [FlavourSold Vanilla]
-    test <@ expected = newEvents @>
+let Given = id
+let When (eventProducer : EventStore.EventProducer<Event>) = eventProducer
+let Then expectedEvents events = test <@ expectedEvents = events @>
+
+module SellFlavour =
+
+    [<Fact>]
+    let ``FalvourSold happy path`` () =
+        Given [FlavourRestocked (Vanilla, 3)]
+        |> When (Behaviour.sellFlavor Vanilla)
+        |> Then [FlavourSold Vanilla]
+    
+    [<Fact>]
+    let ``FalvourSold and went out of stock`` () =
+        Given [FlavourRestocked (Vanilla, 1)]
+        |> When (Behaviour.sellFlavor Vanilla)
+        |> Then [FlavourSold Vanilla; FlavourWentOutOfStock Vanilla]
+        
+    [<Fact>]
+    let ``FalvourSold and was not in stock`` () =
+        Given [FlavourRestocked (Vanilla, 4)]
+        |> When (Behaviour.sellFlavor Chocolate)
+        |> Then [FlavourWasNotInStock Chocolate]    
