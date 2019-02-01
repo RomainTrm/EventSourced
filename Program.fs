@@ -25,12 +25,6 @@ open Domain
 let main argv =
     let eventStore : EventStore<Event> = createInstance()
 
-    // eventStore.Append [FlavourRestocked (Vanilla, 5); FlavourRestocked (Chocolate, 5); FlavourRestocked (Strawberry, 1)]
-    // eventStore.Append [FlavourSold Chocolate; FlavourSold Vanilla]
-    // eventStore.Append [FlavourSold Chocolate]
-    // eventStore.Append [FlavourSold Strawberry; FlavourWentOutOfStock Strawberry]
-    // eventStore.Append [FlavourSold Chocolate; FlavourWasNotInStock Strawberry]
-
     eventStore.Evolve (Behaviour.sellFlavor Vanilla)
     eventStore.Evolve (Behaviour.restockFlavor Vanilla 5)
 
