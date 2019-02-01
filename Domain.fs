@@ -24,9 +24,8 @@ let private stockOf flavour state =
 
 let private changeStock flavour quantity stock = 
     stock
-    |> Map.tryFind flavour
-    |> Option.map (fun quantityInStock -> stock |> Map.add flavour (quantityInStock + quantity))
-    |> Option.defaultValue stock
+    |> stockOf flavour
+    |> fun quantityInStock -> stock |> Map.add flavour (quantityInStock + quantity)
 
 let private updateFlavourStock stock event =
     match event with 

@@ -8,5 +8,5 @@ open Swensen.Unquote
 let ``SellFlavour: FalvourSold happy path`` () =
     let events = [FlavourRestocked (Vanilla, 3)]
     let newEvents = Behaviour.sellFlavor Vanilla events
-    let expected = [FlavourRestocked (Vanilla, 3); FlavourSold Vanilla]
-    test <@ newEvents = expected @>
+    let expected = [FlavourSold Vanilla]
+    test <@ expected = newEvents @>
