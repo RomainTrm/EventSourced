@@ -17,7 +17,6 @@ module PrintHelper =
         stocks
         |> Map.iter (printfn " Flavour: %A, In stock: %i") 
 
-
 open EventStore
 open Domain
 
@@ -25,17 +24,32 @@ open Domain
 let main argv =
     let eventStore : EventStore<Event> = createInstance()
 
-    eventStore.Evolve (Behaviour.sellFlavor Vanilla)
-    eventStore.Evolve (Behaviour.restockFlavor Vanilla 5)
+    let truck1 = System.Guid.NewGuid()
+    let truck2 = System.Guid.NewGuid()
 
-    eventStore.Evolve (Behaviour.sellFlavor Vanilla)
-    eventStore.Evolve (Behaviour.sellFlavor Strawberry)
-    eventStore.Evolve (Behaviour.sellFlavor Chocolate)
+    eventStore.Evolve truck1 (Behaviour.sellFlavor Vanilla)
+    eventStore.Evolve truck1 (Behaviour.restockFlavor Vanilla 5)
 
-    let history = eventStore.GetHistory ()
-    PrintHelper.printHistory history
+    eventStore.Evolve truck1 (Behaviour.sellFlavor Vanilla)
+    eventStore.Evolve truck1 (Behaviour.sellFlavor Strawberry)
+    eventStore.Evolve truck1 (Behaviour.sellFlavor Chocolate)
 
-    let stocks = history |> project flavorsStocks
+    eventStore.Evolve truck2 (Behaviour.restockFlavor Chocolate 5)
+    eventStore.Evolve truck2 (Behaviour.sellFlavor Strawberry)
+    eventStore.Evolve truck2 (Behaviour.sellFlavor Chocolate)
+
+    printfn "\r\nTruck 1:"
+    let historyTruck1 = eventStore.GetStream truck1
+    PrintHelper.printHistory historyTruck1
+
+    let stocks = historyTruck1 |> project flavorsStocks
+    PrintHelper.printStock stocks
+
+    printfn "\r\nTruck 2:"
+    let historyTruck2 = eventStore.GetStream truck2
+    PrintHelper.printHistory historyTruck2
+
+    let stocks = historyTruck2 |> project flavorsStocks
     PrintHelper.printStock stocks
 
     0 // return an integer exit code

@@ -11,19 +11,19 @@ let Then expectedEvents events = test <@ expectedEvents = events @>
 module SellFlavour =
 
     [<Fact>]
-    let ``FalvourSold happy path`` () =
+    let ``Falvour sold happy path`` () =
         Given [FlavourRestocked (Vanilla, 3)]
         |> When (Behaviour.sellFlavor Vanilla)
         |> Then [FlavourSold Vanilla]
     
     [<Fact>]
-    let ``FalvourSold and went out of stock`` () =
+    let ``Falvour sold and went out of stock`` () =
         Given [FlavourRestocked (Vanilla, 1)]
         |> When (Behaviour.sellFlavor Vanilla)
         |> Then [FlavourSold Vanilla; FlavourWentOutOfStock Vanilla]
         
     [<Fact>]
-    let ``FalvourSold and was not in stock`` () =
+    let ``Falvour was not in stock`` () =
         Given [FlavourRestocked (Vanilla, 4)]
         |> When (Behaviour.sellFlavor Chocolate)
         |> Then [FlavourWasNotInStock Chocolate]    
